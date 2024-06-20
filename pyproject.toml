@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "gombocgamblingpy"
+version = "0.1.0"
+description = "Gomboc Gambling Casino"
+authors = ["Jeremy Cohen <jeremycohen2323@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Flask = "^3.0.3"
+SQLAlchemy = "^2.0.31"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

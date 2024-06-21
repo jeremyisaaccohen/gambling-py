@@ -36,6 +36,7 @@ const App: React.FC = () => {
       setResult(`Result: ${data.result}, Outcome: ${data.outcome}, Dice Roll: ${data.dice_roll}`);
     } catch (error) {
       console.error('Error:', error);
+      setResult('Error placing bet. Please ensure sufficient balance! You can always add more :).')
     }
   };
 

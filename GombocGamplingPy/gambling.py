@@ -19,6 +19,8 @@ def place_bet():
         balance: int = get_latest_balance(session=session)
         data = request.get_json()
         amount = int(data.get('amount'))
+        if amount > balance:
+            return jsonify({'error' : 'Cannot place bet, insufficient balance remaining. Please give us more money!'}), 400
         number = int(data.get('number'))
         print("here")
 
@@ -35,7 +37,7 @@ def place_bet():
             balance -= amount
 
         print(f"balance after :{balance}")
-        bet = Bet(amount=amount, number=number, dice_roll=dice_roll, outcome=outcome, balance=balance)
+        bet = Bet(amount=amount, number=number, dice_roll=dice_roll, outcome=outcome, balance=balance, result=result)
         print(f"placing bet with balance {balance}")
         save_bet(bet, session)
     except Exception as e:
@@ -76,7 +78,7 @@ def get_history():
     try:
         bets = session.query(Bet).all()
         bet_list = [
-            {'id': bet.id, 'balance': bet.balance, 'amount': bet.amount, 'number': bet.number, 'dice_roll': bet.dice_roll, 'outcome': bet.outcome}
+            {'id': bet.id, 'balance': bet.balance, 'amount': bet.amount, 'number': bet.number, 'dice_roll': bet.dice_roll, 'outcome': bet.outcome, 'result': bet.result}
             for bet in bets
         ]
         print(f"Retrieved bets: {bet_list}")  # Debug statement
@@ -94,7 +96,7 @@ def withdraw():
     session = Session()
     try:
         balance = 1000
-        bet = Bet(amount=0, number=0, dice_roll=0, outcome=0, balance=balance)
+        bet = Bet(amount=0, number=0, dice_roll=0, outcome=0, balance=balance, result='Withdrawn')
         save_bet(bet, session)
     except Exception as e:
         session.rollback()

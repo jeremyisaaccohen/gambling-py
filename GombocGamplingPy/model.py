@@ -17,6 +17,7 @@ class Bet(Base):
     dice_roll = Column(Integer, nullable=False)
     outcome = Column(Integer, nullable=False)
     balance = Column(Integer, nullable=False)
+    result = Column(String, nullable=False)
 
     def __repr__(self):
         return f'<Bet {self.id}>'

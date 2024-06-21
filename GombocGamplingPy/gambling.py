@@ -40,12 +40,17 @@ def place_bet():
         bet = Bet(amount=amount, number=number, dice_roll=dice_roll, outcome=outcome, balance=balance, result=result)
         print(f"placing bet with balance {balance}")
         save_bet(bet, session)
+        if balance == 0:
+            balance = 1000
+            bet = Bet(amount=0, number=0, dice_roll=0, outcome=0, balance=balance, result='You ran out of cash! Reset!')
+            save_bet(bet, session)
     except Exception as e:
         session.rollback()
         return jsonify('Error: ', str(e))
     finally:
         session.close()
     return jsonify({'balance': balance, 'result': result, 'outcome': outcome, 'dice_roll': dice_roll, 'guess': number})
+
 
 def save_bet(bet: Bet, session:Session):
     # Save bet to database

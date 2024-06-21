@@ -8,6 +8,8 @@ const App: React.FC = () => {
   const [number, setNumber] = useState<string>('');
   const [result, setResult] = useState<string>('');
   const [history, setHistory] = useState<any[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+
 
   // Fetch the current balance when the component mounts
   useEffect(() => {
@@ -23,6 +25,15 @@ const App: React.FC = () => {
     fetchBalance();
   }, []);
 
+  const fetchHistory = async () => {
+    try {
+      const response = await axios.get('/history');
+      setHistory(response.data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   const handleBet = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
@@ -34,6 +45,9 @@ const App: React.FC = () => {
       console.log(data);  // Debugging line
       setBalance(data.balance);
       setResult(`Result: ${data.result}, Outcome: ${data.outcome}, Dice Roll: ${data.dice_roll}`);
+      if (showHistory) {
+        await fetchHistory();
+      }
     } catch (error) {
       console.error('Error:', error);
       setResult('Error placing bet. Please ensure sufficient balance! You can always add more :).')
@@ -45,17 +59,25 @@ const App: React.FC = () => {
       const response = await axios.post('/withdraw');
       setBalance(response.data.balance);
       setResult('Balance withdrawn and game reset.');
+      if (showHistory) {
+        await fetchHistory();
+      }
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
-  const fetchHistory = async () => {
-    try {
-      const response = await axios.get('/history');
-      setHistory(response.data);
-    } catch (error) {
-      console.error('Error:', error);
+  const toggleHistory = async () => {
+    if (showHistory) {
+      setShowHistory(false);
+      setHistory([]);
+    } else {
+      try {
+        await fetchHistory();
+        setShowHistory(true);
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   };
 
@@ -89,7 +111,7 @@ const App: React.FC = () => {
         </p>
       </form>
       <p>{result}</p>
-      <button onClick={fetchHistory}>View History</button>
+      <button onClick={toggleHistory}>{showHistory ? 'Hide History' : 'View History'}</button>
       <button onClick={handleWithdraw}>Withdraw</button>
 
       <ul>

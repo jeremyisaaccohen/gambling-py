@@ -76,7 +76,6 @@ def get_current_balance():
     return jsonify({'balance': balance})
 
 # Route for getting bet history
-# Route for getting bet history
 @app.route('/history', methods=['GET'])
 def get_history():
     session = Session()

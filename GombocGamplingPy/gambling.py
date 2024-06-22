@@ -10,6 +10,34 @@ app = Flask(__name__, static_folder='static')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
 
+def roll_dice(balance: int, guess: int) -> int:
+    """Rolls die either clean or rigged according to balance."""
+    print(f"ROLLLING balance{balance}, guess {guess}")
+    fair_roll = random.randint(1, 6)
+    print(f'fair roll : {fair_roll}')
+    # If we're under 5000 - play fair
+    if balance < 5000:
+        return fair_roll
+    # If we're right and between 5000 and 10000, 30% reroll
+
+    if balance < 10000:
+        reroll = random.randint(1,10)
+        print("reroll odds :", reroll)
+        # 30% chance that the server will repeat the roll (a single time) and use the second roll as the final result.
+        if reroll <= 3:
+            print("30 % chance hit, were rerolling!")
+            return random.randint(1, 6)
+        return fair_roll
+    else:
+        reroll = random.randint(1,10)
+        "50% chance that the server will repeat the roll (a single time) and use the second roll as the final result."
+        if reroll <= 5:
+            print("50 % chance hit, were rerolling!")
+            return random.randint(1, 6)
+        return fair_roll
+
+
+
 # Route for placing a bet
 @app.route('/bet', methods=['POST'])
 def place_bet():
@@ -24,9 +52,8 @@ def place_bet():
         number = int(data.get('number'))
         print("here")
 
-        # Simulate dice roll
-        dice_roll = random.randint(1, 6)
-        print(f" balance before: {balance}")
+        # Roll the potentially rigged die
+        dice_roll = roll_dice(balance, guess=number)
         if number == dice_roll:
             result = 'Win'
             outcome = amount * 5
@@ -36,9 +63,7 @@ def place_bet():
             outcome = -amount
             balance -= amount
 
-        print(f"balance after :{balance}")
         bet = Bet(amount=amount, number=number, dice_roll=dice_roll, outcome=outcome, balance=balance, result=result)
-        print(f"placing bet with balance {balance}")
         save_bet(bet, session)
         if balance == 0:
             balance = 1000

@@ -1,56 +1,63 @@
 import random
-from flask import Flask, jsonify, request, send_from_directory
-import sqlalchemy
+from flask import Flask, jsonify, request, send_from_directory, Response
 
 from GombocGamplingPy.model import Session, Bet
 
 app = Flask(__name__, static_folder='static')
 
+
 @app.route('/')
-def serve():
+def serve() -> Response:
     return send_from_directory(app.static_folder, 'index.html')
 
+
 def roll_dice(balance: int, guess: int) -> int:
-    """Rolls die either clean or rigged according to balance."""
-    print(f"ROLLLING balance{balance}, guess {guess}")
+    """
+    Rolls a die, either fairly or rigged based on the balance.
+
+    Args:
+        balance (int): The current balance of the player.
+        guess (int): The player's guess for the dice roll.
+
+    Returns:
+        int: The result of the dice roll.
+    """
     fair_roll = random.randint(1, 6)
-    print(f'fair roll : {fair_roll}')
-    # If we're under 5000 - play fair
     if balance < 5000:
         return fair_roll
-    # If we're right and between 5000 and 10000, 30% reroll
-
+    # If we're wrong, don't reroll.
+    if guess != fair_roll:
+        return fair_roll
+    # Now we know we got it right, calculate reroll odds.
     if balance < 10000:
-        reroll = random.randint(1,10)
-        print("reroll odds :", reroll)
-        # 30% chance that the server will repeat the roll (a single time) and use the second roll as the final result.
-        if reroll <= 3:
-            print("30 % chance hit, were rerolling!")
-            return random.randint(1, 6)
-        return fair_roll
+        reroll_chance = 3  # 30%
     else:
-        reroll = random.randint(1,10)
-        "50% chance that the server will repeat the roll (a single time) and use the second roll as the final result."
-        if reroll <= 5:
-            print("50 % chance hit, were rerolling!")
-            return random.randint(1, 6)
-        return fair_roll
+        reroll_chance = 5  # 50%
+    reroll = random.randint(1, 10)
+    if reroll <= reroll_chance:
+        print(f"{reroll_chance * 10}% chance hit, we're rerolling!")
+        return random.randint(1, 6)
+
+    return fair_roll
 
 
-
-# Route for placing a bet
 @app.route('/bet', methods=['POST'])
-def place_bet():
+def place_bet() ->tuple[Response, int] | Response:
+    """
+    Places a bet, rolls a potentially rigged die, updates the balance, and saves the bet.
+
+    Returns:
+        json: A JSON response containing the updated balance, result, outcome, dice roll, and guess.
+    """
     session = Session()
     try:
-
         balance: int = get_latest_balance(session=session)
         data = request.get_json()
         amount = int(data.get('amount'))
         if amount > balance:
-            return jsonify({'error' : 'Cannot place bet, insufficient balance remaining. Please give us more money!'}), 400
+            return jsonify(
+                {'error': 'Cannot place bet, insufficient balance remaining. Please give us more money!'}), 400
         number = int(data.get('number'))
-        print("here")
 
         # Roll the potentially rigged die
         dice_roll = roll_dice(balance, guess=number)
@@ -77,51 +84,82 @@ def place_bet():
     return jsonify({'balance': balance, 'result': result, 'outcome': outcome, 'dice_roll': dice_roll, 'guess': number})
 
 
-def save_bet(bet: Bet, session:Session):
-    # Save bet to database
-    print("saving bet", bet)
+def save_bet(bet: Bet, session: Session) -> None:
+    """
+    Saves a bet to the database.
+
+    Args:
+        bet (Bet): The bet to save.
+        session (Session): The database session.
+    """
     session.add(bet)
     session.commit()
-    print(f"Saved bet: {bet}")  # Debug statement
+    print(f"Saved bet: {bet}")
     session.close()
 
-def get_latest_balance(session):
+
+def get_latest_balance(session: Session) -> int:
+    """
+    Retrieves the latest balance from the database.
+
+    Args:
+        session (Session): The database session.
+
+    Returns:
+        int: The latest balance, or the default initial balance if none is found.
+    """
     last_bet = session.query(Bet).order_by(Bet.id.desc()).first()
     return last_bet.balance if last_bet else 1000  # Default initial balance
 
-# Route to get the current balance
+
 @app.route('/balance', methods=['GET'])
-def get_current_balance():
+def get_current_balance() -> Response:
+    """
+    Retrieves the current balance of the player.
+
+    Returns:
+        json: A JSON response containing the current balance.
+    """
     session = Session()
     try:
         balance = get_latest_balance(session)
-        print("balance: ", balance)
     finally:
         session.close()
     return jsonify({'balance': balance})
 
+
 # Route for getting bet history
 @app.route('/history', methods=['GET'])
-def get_history():
+def get_history() -> tuple[Response, int] | Response:
+    """
+    Retrieves the bet history.
+
+    Returns:
+        json: A JSON response containing the bet history.
+    """
     session = Session()
     try:
         bets = session.query(Bet).all()
         bet_list = [
-            {'id': bet.id, 'balance': bet.balance, 'amount': bet.amount, 'number': bet.number, 'dice_roll': bet.dice_roll, 'outcome': bet.outcome, 'result': bet.result}
+            {'id': bet.id, 'balance': bet.balance, 'amount': bet.amount, 'number': bet.number,
+             'dice_roll': bet.dice_roll, 'outcome': bet.outcome, 'result': bet.result}
             for bet in bets
         ]
-        print(f"Retrieved bets: {bet_list}")  # Debug statement
     except Exception as e:
-        print(f"Error retrieving bets: {e}")  # Debug statement
         return jsonify({'error': str(e)}), 500
     finally:
         session.close()
     return jsonify(bet_list)
 
 
-# Route for withdrawing balance and resetting the game
 @app.route('/withdraw', methods=['POST'])
 def withdraw():
+    """
+    Resets the balance to 1000 and saves a withdraw action in the bet history.
+
+    Returns:
+        json: A JSON response containing the updated balance.
+    """
     session = Session()
     try:
         balance = 1000
@@ -134,10 +172,21 @@ def withdraw():
         session.close()
     return jsonify({'balance': balance})
 
+
 # Serve React static files
 @app.route('/<path:path>')
 def serve_static_files(path):
+    """
+    Serves static files.
+
+    Args:
+        path (str): The path of the static file.
+
+    Returns:
+        response: The static file response.
+    """
     return send_from_directory(app.static_folder, path)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

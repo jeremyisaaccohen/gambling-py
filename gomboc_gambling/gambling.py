@@ -1,7 +1,7 @@
 import random
 from flask import Flask, jsonify, request, send_from_directory, Response
 
-from GombocGamplingPy.model import Session, Bet
+from gomboc_gambling.model import Session, Bet
 
 app = Flask(__name__, static_folder='static')
 

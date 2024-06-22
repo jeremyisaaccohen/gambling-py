@@ -1,60 +1,36 @@
-# Gomboc Gambling Casino
 
-## Project Description
-Create a full stack application with a permanent data storage layer using:
+## Aside
+Please note that the included README has been renamed as `project_requirements.md`
 
-- npm
-- Node.js
-- TypeScript
+## PreReqs
+- **Poetry**: Make sure you have Poetry installed. You can install it from [here](https://python-poetry.org/docs/#installation).
+- **Node.js and npm**: Make sure you have Node.js and npm installed. You can download them from [here](https://nodejs.org/).
 
-You can use any database you want but the final project should be possible to run on any local machine using the following commands:
 
-- Install all dependencies: `npm install`
-- Run the application in development mode: `npm run dev`
-    - Development mode should run the application on TypeScript files.
-- Run the application in production mode: `npm start`
-    - Production mode should run the application on compiled JavaScript files.
+## To run
 
-## The Application
-The application is a gambling game where the user can bet on the outcome of a dice roll. The user can bet on a number between 1 and 6. If the user guesses the number correctly,
-they win 5 times the amount they bet. If the user guesses the number incorrectly, they lose the amount they bet.
+Run `./start_casino.sh` from `gambling-py`. You may need to `chmod u+x start_casino.sh` to make it executable first.
 
-The UI can be as simple as a page showing:
+I spent a bit more time than I was expecting just getting a cute shell script running that enabled SIGSTOP to stop both the front and backend processes. 
 
-- The user's balance
-- An input field for the user to enter the `amount` they want to bet
-- An input field for the user to enter the `dice number` they want to bet on
-- A `submit` button to submit the bet
-- A pop up message showing the result of the bet (win or lose)
-- A `withdraw` button to withdraw the balance and reset the game (the user should be able to withdraw the balance only if they have won at least once)
-- A `history` button to show the history of bets for all the games played
+Alternatively, if you don't like executing semi-arbitrary shell scripts, you can run:
+- `poetry install`
+- `poetry run python gomboc_gambling/gambling.py`
 
-The application should have a data storage layer to keep track of the user's balance and the history of bets. The user's balance should be updated after each bet.
+And then in a separate terminal, just run:
+- `npm install`
+- `npm start`
 
-## Game Rules
-- The user should start with a balance of 1000.
-- One turn consists of the following steps:
-    - The user bets an amount and a dice number
-    - The user submits the bet
-    - The application shows the result of the dice roll
-    - The application shows a message if the user wins or loses and updates the balance
-- A user can play as many turns as they want until they press the `withdraw` button or they lose all their money
-- The dice roll should be random.
-- If the user's balance reaches 0, the game should reset to the initial state.
-- If the player press `withdraw` button, the game should reset to the initial state.
 
-### Extra rules
-- If the user's balance is greater or equal to 5000, the dice roll should be rigged with the following logic:
-    - If the dice roll matches the user bet (before claiming the user win), there is a 30% chance that the server will repeat the roll (a single time) and use the second roll as the final result.
-- If the user's balance is greater or equal to 10000, the dice roll should be rigged with the following logic:
-    - If the dice roll matches the user bet (before claiming the user win), there is a 50% chance that the server will repeat the roll (a single time) and use the second roll as the final result.
 
-### Extra features
-- If the user's balance is greater or equal to 20000 and the user try to press `withdraw` button, the button should move away from the mouse cursor.
+## Thoughts
 
-## User stories
-- As a user I want to be able to bet on a number that represents the outcome of a dice roll
-- As a user I want to be able to see the history of all the games I have played
+I definitely don't have a ton of experience with front end dev work, so this was a bit of a fun exercise in that respect!
 
-> NOTE: The user stories and the UI are just guidelines. Feel free to implement the application as you see fit.
+So while the routing wasn't too tricky after going through some documentation, I didn't bother adding CSS or any real styling, I hope that's sufficient for the back end role!
 
+I also didn't have quite as much time to work on this as I hoped because I got stuck with physical therapy after tearing my ACL last week, so I'd be happy to talk about any improvements I would've made with more time or under differnet conditions.
+
+
+## Thanks
+Thanks for the opportunity thus far, and I hope to hear back from the team at Gomboc soon!

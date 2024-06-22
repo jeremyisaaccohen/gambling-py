@@ -1,9 +1,13 @@
 [tool.poetry]
-name = "gombocgamblingpy"
+name = "Gomboc Gambling"
 version = "0.1.0"
 description = "Gomboc Gambling Casino"
 authors = ["Jeremy Cohen <jeremycohen2323@gmail.com>"]
 readme = "README.md"
+
+packages = [
+    { include = "gomboc_gambling" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
